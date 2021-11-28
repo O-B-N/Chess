@@ -82,4 +82,3 @@ public class King extends Piece implements Moved {
 
     }
 }
-cmd
