@@ -79,6 +79,9 @@ public class King extends Piece implements Moved {
     }
 
     public void castling() {
-
+    if (this.moved) {
+        System.out.println("king moved already");
+        return;
+    }
     }
 }
