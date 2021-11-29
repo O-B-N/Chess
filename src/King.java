@@ -5,11 +5,11 @@ public class King extends Piece implements Moved {
     boolean moved = false;
 
     public King(boolean color, Square s) {
-        super(color, 'K', s);
+        super(color, 'K', s, 0);
     }
 
     public King(boolean color, Square s, boolean moved) {
-        super(color, 'K', s);
+        super(color, 'K', s, 0);
         this.moved = moved;
     }
 
@@ -39,7 +39,6 @@ public class King extends Piece implements Moved {
                 }
             }
         }
-
         if (!this.moved) {
             l.add(this.castling(b, true));
             l.add(this.castling(b, false));
@@ -103,7 +102,6 @@ public class King extends Piece implements Moved {
                 }
             }
             if (!controlled) {
-                //create castle move
                 return new Move(kingSide, b, color, this.s, rook.getSquare());
             }
         }

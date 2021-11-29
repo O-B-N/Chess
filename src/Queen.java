@@ -3,7 +3,7 @@ import java.util.List;
 public class Queen extends Piece {
 
     public Queen(boolean color, Square s) {
-        super(color, 'Q', s);
+        super(color, 'Q', s, 9);
     }
 
     @Override

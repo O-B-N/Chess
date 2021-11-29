@@ -1,7 +1,7 @@
 import java.util.List;
 
 public class Move {
-
+    private int value = 0;
     private Square start;
     private Square end;
     private Piece piece;
@@ -137,8 +137,8 @@ public class Move {
         //check for doubles pieces that can take
         //check for checks and promotion
         if (this.isCapture()) {
-            return this.piece.type + "x" + this.end.toString();
+            return this.piece + "x" + this.end;
         }
-        return this.piece.type + this.end.toString();
+        return this.piece + "" + this.end;
     }
 }
