@@ -3,7 +3,7 @@ import java.util.List;
 public class Pawn extends Piece {
 
     public Pawn(boolean color, Square s) {
-        super(color, 'P', s);
+        super(color, 'P', s, 1);
     }
 
     @Override

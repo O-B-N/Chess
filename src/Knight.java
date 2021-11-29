@@ -4,7 +4,7 @@ import java.util.List;
 public class Knight extends Piece {
 
     public Knight(boolean color,  Square s) {
-        super(color, 'N', s);
+        super(color, 'N', s, 3);
     }
 
     @Override

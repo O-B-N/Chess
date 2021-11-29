@@ -1,7 +1,6 @@
-import javax.swing.event.ListDataListener;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.TreeMap;
+import java.util.Random;
 
 public class Board {
     Piece[][] a;
@@ -9,10 +8,11 @@ public class Board {
     boolean color = true;
     double turn = 0;
     boolean gameOver = false;
-    ArrayList<Piece[][]> l;
+    ArrayList<Piece[][]> l = new ArrayList<>();
 
     public Board(Piece[][] a) {
         this.a = a;
+        l.add(this.a);
     }
 
     public Board(Piece[][] a, Move lastMove, boolean color, double turn, ArrayList<Piece[][]> l) {
@@ -64,9 +64,56 @@ public class Board {
         return true;
     }
 
+    public boolean isThreefoldRepetition() {
+        return false;
+    }
+
+    public boolean isStalemate() {
+        List<Move> l = this.allMoves(this.color, true);
+        for (Move m : l) {
+            if (m != null) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public boolean inCheck() {
+        List<Move> l = this.allMoves(!this.color, false);
+        for (Move m : l) {
+            if (m.isCapture() && m.getCapture() instanceof King) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean isCheckmate() {
+        if (!this.inCheck()) {
+            return false;
+        }
+        List<Move> l = this.allMoves(this.color, true);
+        for (Move m : l) {
+            if (m != null) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static Board chess960() {
+        Random r = new Random();
+        int king = r.nextInt(6) + 1;
+        int rook1 = r.nextInt(king);
+        int rook2 = r.nextInt(7 - king) + king;
+        int[] c = new int[8]; //king, rook, rook, bishop, bishop
+        return null;
+    }
+
     public static Board newGame() {
         Piece[][] a = new Piece[8][8];
         boolean color = true;
+        int king = 4, bishop1 = 2, bishop2 = 5, knight1 = 1, knight2 = 6, rook1 = 0, rook2 = 7;
         for (int i = 0; i < 8; i++) {
             if (i > 3) {
                 color = false;
@@ -75,13 +122,13 @@ public class Board {
                 if (i == 1 || i == 6) {
                     a[i][j] = new Pawn(color, new Square(i, j));
                 } else if (i == 7 || i == 0) {
-                    if (j == 0 || j == 7) {
+                    if (j == rook1 || j == rook2) {
                         a[i][j] = new Rook(color, new Square(i, j));
-                    } else if (j == 1 || j == 6) {
+                    } else if (j == knight1 || j == knight2) {
                         a[i][j] = new Knight(color, new Square(i, j));
-                    } else if (j == 2 || j == 5) {
+                    } else if (j == bishop1 || j == bishop2) {
                         a[i][j] = new Bishop(color, new Square(i, j));
-                    } else if (j == 4) {
+                    } else if (j == king) {
                         a[i][j] = new King(color, new Square(i, j));
                     } else {
                         a[i][j] = new Queen(color, new Square(i, j));
@@ -103,19 +150,24 @@ public class Board {
         this.a[end.getRow()][end.getColumn()] = p;
         this.a[start.getRow()][start.getColumn()] = null;
         p.move(start);
-        turn += 0.5;
+        this.turn += 0.5;
         this.color = !this.color;
         this.lastMove = m;
+        l.add(this.a);
     }
 
     public void castle(Move m) {
-
+    this.makeMove(m.getCastleKing());
+    this.makeMove(m.getCastleRook());
+    this.turn -= 0.5;
+    this.color = !this.color;
+    this.lastMove = m;
     }
 
     public List<Move> allMoves(boolean color, boolean checkForChecks) {
         List<Move> l = new ArrayList<>();
-        for (int i = 1; i < 9; i++) {
-            for (int j = 1; j < 9; j++) {
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
                 if (this.a[i][j].getColor() == color) {
                     l.addAll(this.a[i][j].allLegalMoves(this, checkForChecks));
                 }

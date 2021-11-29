@@ -5,11 +5,13 @@ abstract class Piece {
     protected boolean color;
     protected char type;
     protected Square s;
+    protected int value;
 
-    public Piece(boolean color, char type, Square s) {
+    public Piece(boolean color, char type, Square s, int value) {
         this.color = color;
         this.type = type;
         this.s = s;
+        this.value = value;
     }
 
     public boolean equal(Piece p) {
@@ -136,5 +138,9 @@ abstract class Piece {
                 }
             }
         return l;
+    }
+
+    public String toString() {
+        return this.type + "";
     }
 }

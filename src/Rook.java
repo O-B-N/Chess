@@ -1,15 +1,14 @@
-import java.util.ArrayList;
 import java.util.List;
 
 public class Rook extends Piece implements Moved {
     boolean moved = false;
 
     Rook(boolean color, Square s) {
-        super(color, 'R', s);
+        super(color, 'R', s, 5);
     }
 
     Rook(boolean color, Square s, boolean moved) {
-        super(color, 'R', s);
+        super(color, 'R', s, 5);
         this.moved = moved;
     }
 
