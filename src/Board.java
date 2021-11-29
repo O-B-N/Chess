@@ -93,6 +93,10 @@ public class Board {
     }
 
     public void makeMove(Move m) {
+        if (m.isCastling()) {
+            this.castle(m);
+            return;
+        }
         Square start = m.getStart();
         Square end = m.getEnd();
         Piece p = this.a[start.getRow()][start.getColumn()];
@@ -104,18 +108,8 @@ public class Board {
         this.lastMove = m;
     }
 
-    public boolean check(Move m) {
-        boolean legal = false;
-        try {
-            legal = m.isLegalMove();
-        } catch (Exception e) {
-            System.out.println(e);
-        }
-        if (m.isCheck()) {
-            System.out.println("you can't leave your own king in check!");
-            return legal;
-        }
-        return legal;
+    public void castle(Move m) {
+
     }
 
     public List<Move> allMoves(boolean color, boolean checkForChecks) {

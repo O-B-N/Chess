@@ -2,38 +2,66 @@ import java.util.List;
 
 public class Move {
 
-    private final Square start;
-    private final Square end;
-    private final Piece piece;
+    private Square start;
+    private Square end;
+    private Piece piece;
     private Piece capture;
     private Board b;
-    boolean doublePawnPush = false;
-    boolean color;
+    private boolean doublePawnPush = false;
+    private boolean color;
+    private boolean castling = false;
+    private boolean isKingSide = false;
+    private Move castleKing = null;
+    private Move castleRook = null;
 
     public Move(Square start, Square end, Board b, boolean color) {
+        this.b = b;
         this.piece = this.b.getPiece(start.getRow(), start.getColumn());
         this.start = start;
         this.end = end;
-        this.b = b;
         this.color = color;
+    }
+
+    public Move (boolean kingSide, Board b, boolean color, Square king, Square rook) {
+        this.b = b;
+        this.piece = null;
+        this.start = null;
+        this.end = null;
+        this.color = color;
+        this.castling = true;
+        Square endRook, endKing;
+        this.isKingSide = kingSide;
+        if (kingSide) {
+            endKing = new Square(king.getRow(), king.getColumn() + 2);
+            endRook = new Square(rook.getRow(), rook.getColumn() - 2);
+        } else {
+            endKing = new Square(king.getRow(), king.getColumn() - 2);
+            endRook = new Square(rook.getRow(), rook.getColumn() + 3);
+        }
+        this.castleKing = new Move(king, endKing, b, color);
+        this.castleRook = new Move(rook, endRook, b, color);
+    }
+
+    public boolean isCastling() {
+        return castling;
     }
 
     public boolean isLegalMove() {
         /*
-     //   if (this.piece == null) {
-     //       System.out.println("no piece on the start square");
-     //   } else if (this.color != this.piece.getColor()) {
-     //       if (this.color) {
-     //           System.out.println("it's white's turn");
-     //       } else {
-     //           System.out.println("it's black's turn");
-     //       }
-     //   }
-     //
-     //   if (this.isCapture() && (!this.capture.getColor() ^ (this.piece.getColor()))) {
-     //       System.out.println("can't capture a piece with the same color");
-     //   }
-         */
+        if (this.piece == null) {
+            System.out.println("no piece on the start square");
+        } else if (this.color != this.piece.getColor()) {
+            if (this.color) {
+                System.out.println("it's white's turn");
+            } else {
+                System.out.println("it's black's turn");
+            }
+        }
+
+        if (this.isCapture() && (!this.capture.getColor() ^ (this.piece.getColor()))) {
+            System.out.println("can't capture a piece with the same color");
+        }
+       //*/
         boolean isAMove = false;
         List<Move> l = this.piece.allLegalMoves(this.b.copy(), true);
         for (Move m : l) {
@@ -41,14 +69,12 @@ public class Move {
                 isAMove = true;
             }
         }
-        /*
         if (!isAMove) {
             System.out.println("not a legal move");
         }
-
-         */
         return isAMove;
     }
+
 
     public boolean isCheck() {
         this.b = this.b.copy();
@@ -75,23 +101,44 @@ public class Move {
         return this.b;
     }
 
+    public Move getCastleKing() {
+        return castleKing;
+    }
+
+    public Move getCastleRook() {
+        return castleRook;
+    }
+
     public boolean isDoublePawnPush() {
         return this.doublePawnPush;
     }
 
     public boolean isCapture() {
-        this.capture = this.b.getPiece(this.end.getRow(), this.end.getColumn());
+        this.capture = this.b.getPiece(this.end);
         return capture != null;
     }
 
     public Piece getCapture() {
-        return capture;
+        this.capture = this.b.getPiece(this.end);
+        return this.capture;
     }
 
     public boolean equal(Move m) {
         return this.b.equal(m.getBoard()) && this.start.equal(m.getStart()) && this.end.equal(m.getEnd());
     }
 
-
-
+    public String toString() {
+        if (this.isCastling()) {
+            if (isKingSide) {
+                return "O-O";
+            }
+            return "O-O-O";
+        }
+        //check for doubles pieces that can take
+        //check for checks and promotion
+        if (this.isCapture()) {
+            return this.piece.type + "x" + this.end.toString();
+        }
+        return this.piece.type + this.end.toString();
+    }
 }
