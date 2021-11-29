@@ -73,11 +73,11 @@ abstract class Piece {
             }
             x = j;
         }
-        while (x >= 0 && x <= 7 && pTemp == null) {
+        while (x >= 0 && x < 8 && pTemp == null) {
             pTemp = a[i][j];
             if (pTemp == null || pTemp.getColor() != this.color) {
                 m = new Move(this.s, new Square(i, j), b, this.color);
-                if (m.isLegalMove() && (!checkForChecks || !m.isCheck())) {
+                if (!checkForChecks || !m.isCheck()) {
                     l.add(m);
                 }
             }
@@ -116,11 +116,11 @@ abstract class Piece {
         int i = s.getRow();
         int j = s.getColumn();
         Piece pTemp = null;
-        while (i >= 0 && i <= 7 && j >= 0 && j <= 7 && pTemp == null) {
+        while (i >= 0 && i < 8 && j >= 0 && j < 8 && pTemp == null) {
             pTemp = a[i][j];
             if (pTemp == null || pTemp.getColor() != this.color) {
                 m = new Move(this.s, new Square(i, j), b, this.color);
-                if (m.isLegalMove() && (!checkForChecks || !m.isCheck())) {
+                if (!checkForChecks || !m.isCheck()) {
                     l.add(m);
                 }
             }

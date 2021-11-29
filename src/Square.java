@@ -8,7 +8,7 @@ public class Square {
     }
 
     public static Square create(int i, int j) {
-        if(i > 0 && i < 9 && j > 0 && j < 9) {
+        if(i >= 0 && i < 8 && j >= 0 && j < 8) {
             return new Square(i, j);
         }
         return null;
@@ -26,7 +26,6 @@ public class Square {
         if (i > '0' && i < '9' && j > '`' && j < 'i') {
             return null;
         }
-
         return new Square((int)i - (int)'0',(int)j - (int)'`');
     }
 
@@ -37,7 +36,13 @@ public class Square {
     public int getRow() {
         return this.row;
     }
+
     public int getColumn() {
         return this.column;
+    }
+
+    public String toString() {
+       // return new String('a' + (this.column - '0') + this.row);
+        return null;
     }
 }

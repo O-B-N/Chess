@@ -22,11 +22,11 @@ public class Knight extends Piece {
         for (int i = -2; i < 2; i++) {
             for (int j = -2; j < 2; j++) {
                 if (Math.abs(i) == 2 && Math.abs(j) == 1 || Math.abs(j) == 2 && Math.abs(i) == 1) {
-                    end = new Square(s.getRow() + i, s.getColumn() + j);
-                    capture = b.getPiece(end);
-                    if (capture != null && this.sameColor(capture)) {
+                    end = Square.create(s.getRow() + i, s.getColumn() + j);
+                    if (end != null) {
+                        capture = b.getPiece(end);
                         m = new Move(this.s, end, b, this.color);
-                        if (m.isLegalMove() && (!checkForChecks || !m.isCheck())) {
+                        if (capture != null && this.sameColor(capture) && (!checkForChecks || !m.isCheck())) {
                             l.add(m);
                         }
                     }

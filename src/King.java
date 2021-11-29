@@ -4,13 +4,11 @@ import java.util.List;
 public class King extends Piece implements Moved {
     boolean moved = false;
 
-    //castling!!!!!
-
-    public King(boolean color,  Square s) {
+    public King(boolean color, Square s) {
         super(color, 'K', s);
     }
 
-    public King(boolean color,  Square s, boolean moved) {
+    public King(boolean color, Square s, boolean moved) {
         super(color, 'K', s);
         this.moved = moved;
     }
@@ -23,23 +21,28 @@ public class King extends Piece implements Moved {
     @Override
     public List<Move> allLegalMoves(Board b, boolean checkForChecks) {
         List<Move> l = new ArrayList<>();
-        Piece temp;
+        Piece capture;
         Move m;
-        Square s;
+        Square end;
         int newRow, newColumn;
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
                 newRow = this.s.getRow() - 1 + i;
                 newColumn = this.s.getColumn() - 1 + i;
-                temp = b.getArray()[newRow][newColumn];
-                s = Square.create(newRow, newColumn);
-                if (s != null && (!s.equal(this.s)) && (temp == null || this.sameColor(temp))) {
-                    m = new Move(this.s, s, b, this.color);
-                    if (m.isLegalMove() && (!checkForChecks || !m.isCheck())) {
+                end = Square.create(newRow, newColumn);
+                if (end != null && !end.equal(this.s)) {
+                    capture = b.getPiece(end);
+                    m = new Move(this.s, end, b, this.color);
+                    if ((capture == null || !this.sameColor(capture)) && (!checkForChecks || !m.isCheck())) {
                         l.add(m);
                     }
                 }
             }
+        }
+
+        if (!this.moved) {
+            l.add(this.castling(b, true));
+            l.add(this.castling(b, false));
         }
         return l;
     }
@@ -78,10 +81,32 @@ public class King extends Piece implements Moved {
         this.moved = true;
     }
 
-    public void castling() {
-    if (this.moved) {
-        System.out.println("king moved already");
-        return;
-    }
+    public Move castling(Board b, boolean kingSide) {
+        Piece[][] a = b.getArray();
+        Square s = this.getSquare();
+        int i = s.getRow(), j = 0, first = 3, second = 2;
+        if (kingSide) {
+            j = 7;
+            first = 5;
+            second = 6;
+        }
+        Piece rook = a[i][j];
+        List<Move> l = b.allMoves(!this.color, false);
+        boolean controlled = false;
+        if (rook instanceof Rook && !((Rook) rook).wasMoved() && a[i][first] == null && a[i][second] == null) {
+            for (Move m : l) {
+                if (m != null) {
+                    Square end = m.getEnd();
+                    if (end.getRow() == i && (end.getColumn() == first || end.getColumn() == second)) {
+                        controlled = true;
+                    }
+                }
+            }
+            if (!controlled) {
+                //create castle move
+                return new Move(kingSide, b, color, this.s, rook.getSquare());
+            }
+        }
+        return null;
     }
 }
