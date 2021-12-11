@@ -3,36 +3,39 @@ import java.util.List;
 import java.util.Random;
 
 public class Board {
-    Piece[][] a;
-    Move lastMove = null;
-    boolean color = true;
-    double turn = 0;
-    boolean gameOver = false;
-    ArrayList<Piece[][]> l = new ArrayList<>();
+    private Piece[][] a;
+    private Move lastMove = null;
+    private boolean color = true;
+    private double turn = 0;
+    private boolean gameOver = false;
+    private ArrayList<Piece[][]> arrays = new ArrayList<>();
+    private ArrayList<String> history = new ArrayList<>();
+    private String currentFen = null;
+    private double fiftyMovesTrack;
 
     public Board(Piece[][] a) {
         this.a = a;
-        l.add(this.a);
+        this.arrays.add(this.a);
     }
 
-    public Board(Piece[][] a, Move lastMove, boolean color, double turn, ArrayList<Piece[][]> l) {
+    public Board(Piece[][] a, Move lastMove, boolean color, double turn, ArrayList<Piece[][]> arrays) {
         this.a = a;
         this.lastMove = lastMove;
         this.color = color;
         this.turn = turn;
-        this.l = l;
+        this.arrays = arrays;
     }
 
     public Piece[][] getArray() {
         return this.a;
     }
 
-    public Piece getPiece(int i, int j) {
-        return this.a[i][j];
+    public Piece getPiece(int rank, int file) {
+        return this.a[rank][file];
     }
 
     public Piece getPiece(Square s) {
-        return this.a[s.getRow()][s.getColumn()];
+        return this.a[s.getRank()][s.getFile()];
     }
 
     public boolean getColor() {
@@ -45,18 +48,18 @@ public class Board {
 
     public Board copy() {
         Piece[][] a = new Piece[8][8];
-        for (int i = 0; i < 8; i++) {
-            for (int j = 0; j < 8; j++) {
-                a[i][j] = this.a[i][j].copy();
+        for (int rank = 0; rank < 8; rank++) {
+            for (int file = 0; file < 8; file++) {
+                a[rank][file] = this.a[rank][file].copy();
             }
         }
-        return new Board(a, this.lastMove, this.color, this.turn, this.l);
+        return new Board(a, this.lastMove, this.color, this.turn, this.arrays);
     }
 
     public boolean equal(Board b) {
-        for (int i = 0; i < 8; i++) {
-            for (int j = 0; j < 8; j++) {
-                if (!b.getArray()[i][j].equal(this.a[i][j])) {
+        for (int rank = 0; rank < 8; rank++) {
+            for (int file = 0; file < 8; file++) {
+                if (!b.getArray()[rank][file].equal(this.a[rank][file])) {
                     return false;
                 }
             }
@@ -65,7 +68,14 @@ public class Board {
     }
 
     public boolean isThreefoldRepetition() {
-        return false;
+        int repetitions = 0;
+        for (String f : this.history) {
+            if (f.equals(this.currentFen)) {
+                repetitions++;
+            }
+        }
+        this.history.add(this.currentFen);
+        return repetitions == 3;
     }
 
     public boolean isStalemate() {
@@ -92,8 +102,8 @@ public class Board {
         if (!this.inCheck()) {
             return false;
         }
-        List<Move> l = this.allMoves(this.color, true);
-        for (Move m : l) {
+        List<Move> moves = this.allMoves(this.color, true);
+        for (Move m : moves) {
             if (m != null) {
                 return false;
             }
@@ -103,35 +113,62 @@ public class Board {
 
     public static Board chess960() {
         Random r = new Random();
-        int king = r.nextInt(6) + 1;
+        List<Integer> integers = new ArrayList<>();
+        for (int file = 0; file < 8; file++) {
+            integers.add(file);
+        }
+        int king = r.nextInt(6) + 1, bishop1 = 1, bishop2 = 0, knight1 = 10, knight2 = 10;
+        integers.remove(king);
         int rook1 = r.nextInt(king);
+        integers.remove(rook1);
         int rook2 = r.nextInt(7 - king) + king;
-        int[] c = new int[8]; //king, rook, rook, bishop, bishop
-        return null;
+        integers.remove(rook2);
+        while (bishop1 % 2 == 1 || !integers.contains(bishop1) ) {
+            bishop1 = r.nextInt(7);
+        }
+        integers.remove(bishop1);
+        while (bishop2 % 2 == 1 || !integers.contains(bishop2) ) {
+            bishop2 = r.nextInt(7);
+        }
+        integers.remove(bishop2);
+        while (!integers.contains(knight1) ) {
+            knight1 = r.nextInt(7);
+        }
+        integers.remove(knight1);;
+        while (!integers.contains(knight2) ) {
+            knight2 = r.nextInt(7);
+        }
+        integers.remove(knight2);
+        return newGame(king, rook1, rook2, bishop1, bishop2, knight1, knight2);
     }
 
     public static Board newGame() {
+        int king = 4, bishop1 = 2, bishop2 = 5, knight1 = 1, knight2 = 6, rook1 = 0, rook2 = 7;
+        return newGame(king, rook1, rook2, bishop1, bishop2, knight1, knight2);
+    }
+
+    public static Board newGame(int king,  int rook1,  int rook2, int bishop1,
+                               int bishop2,  int knight1,  int knight2)  {
         Piece[][] a = new Piece[8][8];
         boolean color = true;
-        int king = 4, bishop1 = 2, bishop2 = 5, knight1 = 1, knight2 = 6, rook1 = 0, rook2 = 7;
-        for (int i = 0; i < 8; i++) {
-            if (i > 3) {
+        for (int rank = 0; rank < 8; rank++) {
+            if (rank > 3) {
                 color = false;
             }
-            for (int j = 0; j < 8; j++) {
-                if (i == 1 || i == 6) {
-                    a[i][j] = new Pawn(color, new Square(i, j));
-                } else if (i == 7 || i == 0) {
-                    if (j == rook1 || j == rook2) {
-                        a[i][j] = new Rook(color, new Square(i, j));
-                    } else if (j == knight1 || j == knight2) {
-                        a[i][j] = new Knight(color, new Square(i, j));
-                    } else if (j == bishop1 || j == bishop2) {
-                        a[i][j] = new Bishop(color, new Square(i, j));
-                    } else if (j == king) {
-                        a[i][j] = new King(color, new Square(i, j));
+            for (int file = 0; file < 8; file++) {
+                if (rank == 1 || rank == 6) {
+                    a[rank][file] = new Pawn(color, new Square(rank, file));
+                } else if (rank == 7 || rank == 0) {
+                    if (file == rook1 || file == rook2) {
+                        a[rank][file] = new Rook(color, new Square(rank, file));
+                    } else if (file == knight1 || file == knight2) {
+                        a[rank][file] = new Knight(color, new Square(rank, file));
+                    } else if (file == bishop1 || file == bishop2) {
+                        a[rank][file] = new Bishop(color, new Square(rank, file));
+                    } else if (file == king) {
+                        a[rank][file] = new King(color, new Square(rank, file));
                     } else {
-                        a[i][j] = new Queen(color, new Square(i, j));
+                        a[rank][file] = new Queen(color, new Square(rank, file));
                     }
                 }
             }
@@ -143,17 +180,26 @@ public class Board {
         if (m.isCastling()) {
             this.castle(m);
             return;
+        } else if (m.isPromotion()) {
+
         }
         Square start = m.getStart();
         Square end = m.getEnd();
-        Piece p = this.a[start.getRow()][start.getColumn()];
-        this.a[end.getRow()][end.getColumn()] = p;
-        this.a[start.getRow()][start.getColumn()] = null;
+        Piece p = this.a[start.getRank()][start.getFile()];
+        this.a[end.getRank()][end.getFile()] = p;
+        if (m.isPromotion()) {
+            this.a[end.getRank()][end.getFile()] = m.getPromoted();
+        }
+        this.a[start.getRank()][start.getFile()] = null;
+        if (m.isEnPassant()) {
+            this.a[end.getRank() + (this.color ? 1 : -1)][end.getFile()] = null;
+        }
+        //update p.s timePassed(b)
         p.move(start);
         this.turn += 0.5;
         this.color = !this.color;
         this.lastMove = m;
-        l.add(this.a);
+        this.arrays.add(this.a);
     }
 
     public void castle(Move m) {
@@ -165,14 +211,18 @@ public class Board {
     }
 
     public List<Move> allMoves(boolean color, boolean checkForChecks) {
-        List<Move> l = new ArrayList<>();
-        for (int i = 0; i < 8; i++) {
-            for (int j = 0; j < 8; j++) {
-                if (this.a[i][j].getColor() == color) {
-                    l.addAll(this.a[i][j].allLegalMoves(this, checkForChecks));
+        List<Move> moves = new ArrayList<>();
+        for (int rank = 0; rank < 8; rank++) {
+            for (int file = 0; file < 8; file++) {
+                if (this.a[rank][file].getColor() == color) {
+                    moves.addAll(this.a[rank][file].allLegalMoves(this, checkForChecks));
                 }
             }
         }
-        return l;
+        return moves;
+    }
+
+    public Move getLastMove() {
+        return this.lastMove;
     }
 }

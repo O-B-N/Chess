@@ -43,24 +43,34 @@ abstract class Piece {
     }
 
     public List<Move> allStraightMoves(Board b, boolean checkForChecks) {
-        List<Move> l = this.straightMoves(b, true, true, checkForChecks);
-        l.addAll(this.straightMoves(b, true, false, checkForChecks));
-        l.addAll(this.straightMoves(b, false, true, checkForChecks));
-        l.addAll(this.straightMoves(b, false, false, checkForChecks));
-        return l;
+        List<Move> moves = this.straightMoves(b, true, true, checkForChecks);
+        moves.addAll(this.straightMoves(b, true, false, checkForChecks));
+        moves.addAll(this.straightMoves(b, false, true, checkForChecks));
+        moves.addAll(this.straightMoves(b, false, false, checkForChecks));
+        return moves;
     }
 
-
-    public List<Move> straightMoves(Board b, boolean row, boolean increase, boolean checkForChecks) {
+    public void timePassed(Board b) {
+        Piece[][] a = b.getArray();
+        for (int rank = 0; rank < 8; rank++) {
+            for (int file = 0; file < 8; file++) {
+                if (this == a[rank][file]) {
+                    this.s = new Square(rank, file);
+                }
+                return;
+            }
+        }
+    }
+    public List<Move> straightMoves(Board b, boolean isRank, boolean increase, boolean checkForChecks) {
         Piece[][] a = b.getArray();
         Square s = this.getSquare();
         Move m;
-        List<Move> l = new ArrayList<>();
-        int i = s.getRow();
-        int j = s.getColumn();
+        List<Move> moves = new ArrayList<>();
+        int i = s.getRank();
+        int j = s.getFile();
         Piece pTemp = null;
         int x;
-        if (row) {
+        if (isRank) {
             if (increase) {
                 i++;
             } else {
@@ -80,10 +90,10 @@ abstract class Piece {
             if (pTemp == null || pTemp.getColor() != this.color) {
                 m = new Move(this.s, new Square(i, j), b, this.color);
                 if (!checkForChecks || !m.isCheck()) {
-                    l.add(m);
+                    moves.add(m);
                 }
             }
-            if (row) {
+            if (isRank) {
                 if (increase) {
                     i++;
                 } else {
@@ -99,31 +109,31 @@ abstract class Piece {
                 x = j;
             }
         }
-        return l;
+        return moves;
     }
 
     public List<Move> allDiagonalMoves(Board b, boolean checkForChecks) {
-        List<Move> l = this.diagonalMoves(b, true, true, checkForChecks);
-        l.addAll(this.diagonalMoves(b, true, false, checkForChecks));
-        l.addAll(this.diagonalMoves(b, false, true, checkForChecks));
-        l.addAll(this.diagonalMoves(b, false, false, checkForChecks));
-        return l;
+        List<Move> moves = this.diagonalMoves(b, true, true, checkForChecks);
+        moves.addAll(this.diagonalMoves(b, true, false, checkForChecks));
+        moves.addAll(this.diagonalMoves(b, false, true, checkForChecks));
+        moves.addAll(this.diagonalMoves(b, false, false, checkForChecks));
+        return moves;
     }
 
     public List<Move> diagonalMoves(Board b, boolean up, boolean right, boolean checkForChecks) {
         Piece[][] a = b.getArray();
         Square s = this.getSquare();
-        List<Move> l = new ArrayList<>();
+        List<Move> moves = new ArrayList<>();
         Move m;
-        int i = s.getRow();
-        int j = s.getColumn();
+        int i = s.getRank();
+        int j = s.getFile();
         Piece pTemp = null;
         while (i >= 0 && i < 8 && j >= 0 && j < 8 && pTemp == null) {
             pTemp = a[i][j];
             if (pTemp == null || pTemp.getColor() != this.color) {
                 m = new Move(this.s, new Square(i, j), b, this.color);
                 if (!checkForChecks || !m.isCheck()) {
-                    l.add(m);
+                    moves.add(m);
                 }
             }
                 if (up) {
@@ -137,7 +147,7 @@ abstract class Piece {
                     j--;
                 }
             }
-        return l;
+        return moves;
     }
 
     public String toString() {

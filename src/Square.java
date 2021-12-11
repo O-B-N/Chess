@@ -1,15 +1,15 @@
 public class Square {
-    private final int row;
-    private final int column;
+    private final int rank;
+    private final int file;
 
-    public Square(int i, int j) {
-        this.row = i;
-        this. column = j;
+    public Square(int rank, int file) {
+        this.rank = rank;
+        this. file = file;
     }
 
-    public static Square create(int i, int j) {
-        if(i >= 0 && i < 8 && j >= 0 && j < 8) {
-            return new Square(i, j);
+    public static Square create(int rank, int file) {
+        if (rank >= 0 && rank < 8 && file >= 0 && file < 8) {
+            return new Square(rank, file);
         }
         return null;
     }
@@ -20,25 +20,25 @@ public class Square {
         }
 
         char[] a = str.toCharArray();
-        char i = a[0];
-        char j = a[1];
+        int rank = a[0];
+        int file = a[1];
 
-        if (i > '0' && i < '9' && j > '`' && j < 'i') {
+        if (rank > '0' && rank < '9' && file > '`' && file < 'i') {
             return null;
         }
-        return new Square((int)i - (int)'0',(int)j - (int)'`');
+        return new Square(rank - (int)'0', file - (int)'`');
     }
 
     public boolean equal(Square s) {
-        return this.row == s.getRow() && this.column == s.getColumn();
+        return this.rank == s.getRank() && this.file == s.getFile();
     }
 
-    public int getRow() {
-        return this.row;
+    public int getRank() {
+        return this.rank;
     }
 
-    public int getColumn() {
-        return this.column;
+    public int getFile() {
+        return this.file;
     }
 
     public String toString() {
