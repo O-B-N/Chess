@@ -15,8 +15,8 @@ public class Queen extends Piece {
     //rook + bishop
     @Override
     public List<Move> allLegalMoves(Board b, boolean checkForChecks) {
-        List<Move> l = this.allStraightMoves(b, checkForChecks);
-        l.addAll(this.allDiagonalMoves(b, checkForChecks));
-        return l;
+        List<Move> moves = this.allStraightMoves(b, checkForChecks);
+        moves.addAll(this.allDiagonalMoves(b, checkForChecks));
+        return moves;
     }
 }

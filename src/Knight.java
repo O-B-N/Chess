@@ -14,7 +14,7 @@ public class Knight extends Piece {
 
     @Override
     public List<Move> allLegalMoves(Board b, boolean checkForChecks) {
-        List<Move> l = new ArrayList<>();
+        List<Move> moves = new ArrayList<>();
         Square s = this.getSquare();
         Move m;
         Square end;
@@ -22,18 +22,17 @@ public class Knight extends Piece {
         for (int i = -2; i < 2; i++) {
             for (int j = -2; j < 2; j++) {
                 if (Math.abs(i) == 2 && Math.abs(j) == 1 || Math.abs(j) == 2 && Math.abs(i) == 1) {
-                    end = Square.create(s.getRow() + i, s.getColumn() + j);
+                    end = Square.create(s.getRank() + i, s.getFile() + j);
                     if (end != null) {
                         capture = b.getPiece(end);
                         m = new Move(this.s, end, b, this.color);
                         if (capture != null && this.sameColor(capture) && (!checkForChecks || !m.isCheck())) {
-                            l.add(m);
+                            moves.add(m);
                         }
                     }
                 }
-
             }
         }
-        return l;
+        return moves;
     }
 }
