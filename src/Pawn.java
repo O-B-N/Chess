@@ -17,36 +17,64 @@ public class Pawn extends Piece {
 
     @Override
     public List<Move> allLegalMoves(Board b, boolean checkForChecks) {
+    //    System.out.println("started pawn moves");
         Square pawn = this.getSquare();
-        List<Move> moves = new ArrayList<>(), temp = new ArrayList<>();
-        boolean c = this.color;
-        Move m;
-        int direction = this.color ? 1 : -1, rank = pawn.getRank(), file = pawn.getFile();
-        Square forwardSquare = new Square(rank + direction, file);
+        List<Move> moves = new ArrayList<>(), temp;
+        boolean white = this.color;
+        int direction = white ? 1 : -1, rank = pawn.getRank(), file = pawn.getFile(), finalRank = rank + direction;
+        Square forwardSquare = new Square(finalRank, file);
         Piece forwardPiece = b.getPiece(forwardSquare);
-        if (forwardPiece == null) {
-            if (rank + direction == 0 || rank + direction == 7) {
+        boolean promote = finalRank == 0 || finalRank == 7;
+        if (forwardPiece == null && checkForChecks) {
+            if (promote) {
+    //            System.out.println("added forward promote");
                 moves.addAll(promote(forwardSquare, b));
             } else {
-                moves.add(Move.createDoublePawnMove(pawn, forwardSquare, b, c));
-                if (rank == 1 || rank == 6) {
-                    forwardSquare = new Square(rank + 2 * direction, file);
-                    moves.add(new Move(pawn, forwardSquare, b, c));
+   //             System.out.println("added forward pawn");
+                moves.add(new Move(pawn, forwardSquare, b, white));
+                boolean onStartingSquare = ((pawn.getRank() - direction == 0) || (pawn.getRank() - direction == 7));
+                if (onStartingSquare && b.getPiece(finalRank + direction , file) == null) {
+           //         System.out.println("added double forward");
+                    moves.add(new Move(pawn, new Square(finalRank + direction, file), b, white, true));
                 }
             }
         }
-        boolean promote = c && rank == 6 || !c && rank == 1;
-        moves.addAll(Objects.requireNonNull(capture(promote, b, 1, direction)));
-        moves.addAll(Objects.requireNonNull(capture(promote, b, -1, direction)));
-        moves.add(enPassant(b, -1, direction));
-        moves.add(enPassant(b, -1, direction));
-        temp.addAll(moves);
-        for (Move move : temp) {
-            if(checkForChecks && !move.isCheck()) {
-                moves.remove(move);
+   //     System.out.println("done forward moves" + moves);
+        moves.addAll((capture(promote, b, 1, finalRank)));
+        moves.addAll((capture(promote, b, -1, finalRank)));
+    //    System.out.println("done capture");
+        if (checkForChecks) {
+            moves.add(enPassant(b, 1, direction));
+            moves.add(enPassant(b, -1, direction));
+        }
+        /*
+        // else {
+    //        System.out.println("skipping en passant, check for checks is: " + checkForChecks);
+     //   }
+    //   temp = new ArrayList<>(moves);
+    //    for (Move move : temp) {
+    //        System.out.println("reached here");
+    //        if (move == null || (checkForChecks && move.isCheck())) {
+    //            System.out.println("removed " + move);
+    //            moves.remove(move);
+    //        }
+    //    }
+        /*
+        List<Move> l = new ArrayList<>(moves);
+        for (int i = l.size() - 1; i >= 0; i--) {
+            if (l.get(i) == null || (checkForChecks && l.get(i).isCheck())) {
+                moves.remove(i);
             }
         }
+      //  System.out.println("all pawn moves: " + moves);
+
+         */
         return moves;
+    }
+
+    private boolean canDouble() {
+        int rank = this.getSquare().getRank();
+        return this.color && rank == 1 || !this.color && rank == 6;
     }
 
     private List<Move> promote(Square end, Board b) {
@@ -54,22 +82,24 @@ public class Pawn extends Piece {
     }
 
     private Move enPassant(Board b, int side, int direction) {
-        int file = this.s.getFile(), rank = this.s.getRank();
-        Square end = Square.create(rank + direction, file + side);
-        Square enPassant = Square.create(rank , file + side);
+      //  System.out.println("done capture, starting en passant");
+        int file = this.s.getFile() + side, rank = this.s.getRank();
+        Square end = Square.create(rank + direction, file);
+        Square enPassant = Square.create(rank , file);
         Move lastMove = b.getLastMove();
-        if (lastMove.isEnPassant() && lastMove.getEnd().equal(enPassant)) {
+        if (end != null && lastMove != null && lastMove.isDoublePawnPush() && lastMove.getEnd().equal(enPassant)) {
             return Move.createEnPassantMove(this.s, end, b, color);
         }
-        return  null;
+        return null;
     }
 
-    private List<Move> capture(boolean promote, Board b, int side, int direction) {
+    private List<Move> capture(boolean promote, Board b, int side, int finalRank) {
+       // System.out.println("started capture moves");
         List<Move> moves = new ArrayList<>();
-        Square end = Square.create(s.getRank() + direction, s.getFile() + side);
+        Square end = Square.create(finalRank, s.getFile() + side);
         if (end != null) {
             Piece capture = b.getPiece(end);
-            if (capture != null && capture.getColor() != this.color) {
+            if (capture != null && !capture.sameColor(this)) {
                 if (promote) {
                         return this.promote(end, b);
                 } else {
@@ -78,6 +108,6 @@ public class Pawn extends Piece {
                 }
             }
         }
-        return  null;
+        return moves;
     }
 }

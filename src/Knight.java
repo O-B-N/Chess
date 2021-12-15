@@ -19,20 +19,21 @@ public class Knight extends Piece {
         Move m;
         Square end;
         Piece capture;
-        for (int i = -2; i < 2; i++) {
-            for (int j = -2; j < 2; j++) {
-                if (Math.abs(i) == 2 && Math.abs(j) == 1 || Math.abs(j) == 2 && Math.abs(i) == 1) {
-                    end = Square.create(s.getRank() + i, s.getFile() + j);
+        for (int rank = -2; rank < 3; rank++) {
+            for (int file = -2; file < 3; file++) {
+                if ((Math.abs(rank) == 2 && Math.abs(file) == 1) || (Math.abs(file) == 2 && Math.abs(rank) == 1)) {
+                    end = Square.create(s.getRank() + rank, s.getFile() + file);
                     if (end != null) {
                         capture = b.getPiece(end);
                         m = new Move(this.s, end, b, this.color);
-                        if (capture != null && this.sameColor(capture) && (!checkForChecks || !m.isCheck())) {
+                        if ((capture == null || !this.sameColor(capture)) && (!checkForChecks || !m.isInCheck())) {
                             moves.add(m);
                         }
                     }
                 }
             }
         }
+     //   System.out.println("finished knight moves" + moves);
         return moves;
     }
 }

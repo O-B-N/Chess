@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 abstract class Piece {
     protected boolean color;
@@ -9,6 +10,10 @@ abstract class Piece {
 
     public Piece(boolean color, char type, Square s, int value) {
         this.color = color;
+        if (!color) {
+            String r = (type + "").toLowerCase(Locale.ROOT);
+            type = r.toCharArray()[0];
+        }
         this.type = type;
         this.s = s;
         this.value = value;
@@ -35,10 +40,11 @@ abstract class Piece {
     }
 
     public boolean sameColor(Piece p) {
-        return p.getColor() ^ this.color;
+        return p.getColor() == this.color;
     }
 
     public void move(Square s) {
+     //   System.out.println(this + " updated to: " + s);
         this.s = s;
     }
 
@@ -50,17 +56,6 @@ abstract class Piece {
         return moves;
     }
 
-    public void timePassed(Board b) {
-        Piece[][] a = b.getArray();
-        for (int rank = 0; rank < 8; rank++) {
-            for (int file = 0; file < 8; file++) {
-                if (this == a[rank][file]) {
-                    this.s = new Square(rank, file);
-                }
-                return;
-            }
-        }
-    }
     public List<Move> straightMoves(Board b, boolean isRank, boolean increase, boolean checkForChecks) {
         Piece[][] a = b.getArray();
         Square s = this.getSquare();
@@ -89,7 +84,7 @@ abstract class Piece {
             pTemp = a[i][j];
             if (pTemp == null || pTemp.getColor() != this.color) {
                 m = new Move(this.s, new Square(i, j), b, this.color);
-                if (!checkForChecks || !m.isCheck()) {
+                if (!checkForChecks || !m.isInCheck()) {
                     moves.add(m);
                 }
             }
@@ -127,12 +122,23 @@ abstract class Piece {
         Move m;
         int i = s.getRank();
         int j = s.getFile();
+
+        if (up) {
+            i++;
+        } else {
+            i--;
+        }
+        if (right) {
+            j++;
+        } else {
+            j--;
+        }
         Piece pTemp = null;
         while (i >= 0 && i < 8 && j >= 0 && j < 8 && pTemp == null) {
             pTemp = a[i][j];
-            if (pTemp == null || pTemp.getColor() != this.color) {
+            if (pTemp == null || !pTemp.sameColor(this)) {
                 m = new Move(this.s, new Square(i, j), b, this.color);
-                if (!checkForChecks || !m.isCheck()) {
+                if (!checkForChecks || !m.isInCheck()) {
                     moves.add(m);
                 }
             }
