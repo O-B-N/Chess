@@ -30,7 +30,10 @@ public class Square {
     }
 
     public boolean equal(Square s) {
-        return this.rank == s.getRank() && this.file == s.getFile();
+        if (s == null) {
+            return true;
+        }
+        return this.toString().equals(s.toString());
     }
 
     public int getRank() {
@@ -42,7 +45,8 @@ public class Square {
     }
 
     public String toString() {
-       // return new String('a' + (this.column - '0') + this.row);
-        return null;
+        char a = 'a';
+        a += this.file;
+        return new String(a + Integer.toString(this.rank + 1));
     }
 }

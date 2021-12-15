@@ -7,9 +7,9 @@ public class Move {
     private Square end;
     private Piece piece;
     private Piece capture;
-    private Board b;
+    private Board copyBoard;
     private boolean doublePawnPush = false;
-    private final boolean color;
+    private boolean color;
     private boolean castling = false;
     private boolean isKingSide = false;
     private boolean promotion = false;
@@ -17,30 +17,50 @@ public class Move {
     private Move castleKing = null;
     private Move castleRook = null;
     private boolean enPassant = false;
+    private Piece[][] a;
 
     public Move(Square start, Square end, Board b, boolean color) {
-        this.b = b;
-        this.piece = this.b.getPiece(start.getRank(), start.getFile());
-        this.start = start;
-        this.end = end;
-        this.color = color;
+        createMove(start, end, b, color, false);
     }
 
-    public static Move createDoublePawnMove(Square start, Square end, Board b, boolean color) {
-        Move m = new Move(start, end, b, color);
-        m.doublePawnPush = true;
-        return m;
+    public Move(Square start, Square end, Board b, boolean color, boolean doubleMove) {
+        createMove(start,end,b,color,doubleMove);
+    }
+
+    private void createMove(Square start, Square end, Board b, boolean color, boolean doubleMove) {
+        this.copyBoard = b.copy();
+        this.piece = copyBoard.getPiece(start);
+     //   if (this.piece == null) {
+     //       System.out.println("no piece in move creation");
+     //       System.exit(1);
+     //   }
+        this.start = start;
+        this.end = end;
+      //  if (end == null) {
+      //      System.out.println("null end move");
+      //      System.out.println(start);
+      //      System.exit(2);
+      //  }
+        this.doublePawnPush = doubleMove;
+        this.color = color;
+        isCapture();
+        this.a = b.getArray();
+
     }
 
     public static Move createCastlingMove(boolean kingSide, Board b, boolean color, Square king, Square rook) {
-        Move m = new Move(null, null, b, color);
+        Square end = kingSide ? new Square(king.getRank(), 6) : new Square(king.getRank(),2);
+        Move m = new Move(king, end, b, color);
         m.castling = true;
+        System.out.println(end + " castling move");
         Square endRook, endKing;
         m.isKingSide = kingSide;
         if (kingSide) {
+    //        System.out.println("doing king side");
             endKing = new Square(king.getRank(), king.getFile() + 2);
             endRook = new Square(rook.getRank(), rook.getFile() - 2);
         } else {
+     //       System.out.println("doing queen side");
             endKing = new Square(king.getRank(), king.getFile() - 2);
             endRook = new Square(rook.getRank(), rook.getFile() + 3);
         }
@@ -53,25 +73,21 @@ public class Move {
     public static List<Move> createPromotionMove(Square start, Square end, Board b, boolean color) {
         List<Move> moves = new ArrayList<>();
         Move m = new Move(start, end, b, color);
-        moves.add(m);
         m.promotion = true;
         m.promoted = new Knight(color, end);
-        m = new Move(start, end, b, color);
         moves.add(m);
+        m = new Move(start, end, b, color);
         m.promotion = true;
         m.promoted = new Queen(color, end);
-        m = new Move(start, end, b, color);
         moves.add(m);
+        m = new Move(start, end, b, color);
         m.promotion = true;
         m.promoted = new Bishop(color, end);
-        m = new Move(start, end, b, color);
         moves.add(m);
+        m = new Move(start, end, b, color);
         m.promotion = true;
         m.promoted = new Rook(color, end);
-        m = new Move(start, end, b, color);
         moves.add(m);
-        m.promotion = true;
-        m.promoted = new Rook(color, end);
         return moves;
     }
 
@@ -119,7 +135,7 @@ public class Move {
         }
        //*/
         boolean isAMove = false;
-        List<Move> moves = this.piece.allLegalMoves(this.b.copy(), true);
+        List<Move> moves = this.piece.allLegalMoves(copyBoard.copy(), true);
         for (Move m : moves) {
             if (this.equal(m)) {
                 isAMove = true;
@@ -131,18 +147,25 @@ public class Move {
         return isAMove;
     }
 
+    public boolean isInCheck() {
+        return isInCheck(false);
+    }
 
-    public boolean isCheck() {
-        this.b = this.b.copy();
-        this.b.makeMove(this);
-        List<Move> moves = b.allMoves(!this.color, false);
-        int index = 0;
-        Move temp = moves.get(index);
-        while (temp != null && temp.isCapture() && temp.getCapture().getType() != 'K') {
-            index++;
-            temp = moves.get(index);
+    //**is IN check**
+    public boolean isInCheck(boolean after) {
+        Board copy = copyBoard.copy();
+        copy.makeMove(this);
+        boolean c = copy.getColor();
+        if (after) {
+            c = !c;
         }
-        return temp != null && temp.isCapture() && temp.getCapture().getType() == 'K';
+        List<Move> moves = copy.allMoves(c, false);
+        for (Move m : moves) {
+            if (m != null && m.isCapture() && m.getCapture() instanceof King) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public Square getStart() {
@@ -154,7 +177,7 @@ public class Move {
     }
     
     public Board getBoard() {
-        return this.b;
+        return copyBoard;
     }
 
     public Move getCastleKing() {
@@ -170,32 +193,53 @@ public class Move {
     }
 
     public boolean isCapture() {
-        this.capture = this.b.getPiece(this.end);
-        return capture != null;
+        this.capture = copyBoard.getPiece(this.end);
+        return this.capture != null;
     }
 
     public Piece getCapture() {
-        this.capture = this.b.getPiece(this.end);
+        this.capture = copyBoard.getPiece(this.end);
         return this.capture;
     }
 
     public boolean equal(Move m) {
-        return this.b.equal(m.getBoard()) && this.start.equal(m.getStart()) && this.end.equal(m.getEnd());
+        return copyBoard.equal(m.getBoard()) && this.start.equal(m.getStart()) && this.end.equal(m.getEnd());
     }
 
     public String toString() {
+        //check, mate and stalemate
+        Piece piece = this.piece;
+        Board copy = this.copyBoard.copy();
+        copy.makeMove(this);
+        String check = "";
+        if (isInCheck(true)) {
+            check = "+";
+            if (copy.isCheckmate()) {
+                check = "#";
+            }
+        }
+        if (copy.isCheckmate()) {
+            check = "#";
+        }
+        String promotion = "";
         if (this.isCastling()) {
             if (isKingSide) {
-                return "O-O";
+                return "O-O" + check;
             }
-            return "O-O-O";
+            return "O-O-O" + check;
+        }
+        if (this.promotion) {
+            promotion = "=" + this.promoted + check;
         }
         //check for doubles pieces from the same type that can take
-        //check for checks and promotion
-        if (this.isCapture()) {
-            return this.piece + "x" + this.end;
+        //check for checks and
+        if (this.isCapture() || this.enPassant) {
+            String pawn = piece.getSquare().toString().toCharArray()[0] + "";
+            return ((piece instanceof Pawn ? pawn : piece) + "x" + this.end.toString() + promotion + check);
+        } else if (piece instanceof Pawn) {
+            return (this.end.toString() + promotion + check);
         }
-        return this.piece + "" + this.end;
+        return (this.piece.toString() + "" + this.end.toString() + check);
     }
 
     public boolean isPromotion() {

@@ -3,7 +3,7 @@ import java.util.List;
 public class Bishop extends Piece {
 
     public Bishop(boolean color, Square s) {
-        super(color, 'B', s, 3);
+        super(color, 'B', s, 300);
     }
 
     @Override
