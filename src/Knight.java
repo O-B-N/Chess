@@ -1,8 +1,16 @@
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * knight class
+ */
 public class Knight extends Piece {
 
+    /**
+     * creates a knight piece
+     * @param color of the piece
+     * @param s the square of the piece
+     */
     public Knight(boolean color,  Square s) {
         super(color, 'N', s, 3);
     }
@@ -15,8 +23,7 @@ public class Knight extends Piece {
     @Override
     public List<Move> allLegalMoves(Board b, boolean checkForChecks) {
         List<Move> moves = new ArrayList<>();
-        Square s = this.getSquare();
-        Move m;
+        Square s = this.s;
         Square end;
         Piece capture;
         for (int rank = -2; rank < 3; rank++) {
@@ -25,9 +32,8 @@ public class Knight extends Piece {
                     end = Square.create(s.getRank() + rank, s.getFile() + file);
                     if (end != null) {
                         capture = b.getPiece(end);
-                        m = new Move(this.s, end, b, this.color);
-                        if ((capture == null || !this.sameColor(capture)) && (!checkForChecks || !m.isInCheck())) {
-                            moves.add(m);
+                        if ((capture == null || !this.sameColor(capture))) {
+                            moves.add(new Move(s, end, b, this.color));
                         }
                     }
                 }

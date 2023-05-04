@@ -1,20 +1,36 @@
 import java.util.List;
 
-public class Rook extends Piece implements Moved {
-    boolean moved = false;
+/**
+ * rook class
+ */
+public class Rook extends Piece {
+    private boolean kingSide = false;
 
+    /**
+     * creates a rook piece
+     * @param color of the piece
+     * @param s the square of the piece
+     */
     Rook(boolean color, Square s) {
-        super(color, 'R', s, 5);
+        super(color, 'R', s, 500);
     }
 
-    Rook(boolean color, Square s, boolean moved) {
-        super(color, 'R', s, 5);
+    /**
+     * creates a queen piece
+     * @param color of the piece
+     * @param s the square of the piece
+     * @param moved ture if the rook had moved
+     * @param kingSide if it's the king-side's rook
+     */
+    Rook(boolean color, Square s, boolean moved, boolean kingSide) {
+        super(color, 'R', s, 500);
         this.moved = moved;
+        this.kingSide = kingSide;
     }
 
     @Override
     public Piece copy() {
-        return new Rook(this.color, this.s, this.moved);
+        return new Rook(this.color, this.s, this.moved, this.kingSide);
     }
 
     @Override
@@ -29,12 +45,12 @@ public class Rook extends Piece implements Moved {
     }
 
     @Override
-    public void move(Square s) {
+    public int move(Square s) {
         this.s = s;
-        this.moved = true;
-    }
-
-    public boolean wasMoved() {
-        return this.moved;
+        if (!this.moved) {
+            this.moved = true;
+            return kingSide ? 1 : 2 + (this.color ? 0 : 2);
+        }
+        return 0;
     }
 }

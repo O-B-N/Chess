@@ -2,13 +2,25 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class King extends Piece implements Moved {
-    boolean moved = false;
-
+/**
+ * king class
+ */
+public class King extends Piece {
+    /**
+     * creates a queen piece
+     * @param color of the piece
+     * @param s the square of the piece
+     */
     public King(boolean color, Square s) {
         super(color, 'K', s, 10000);
     }
 
+    /**
+     * creates a queen piece
+     * @param color of the piece
+     * @param s the square of the piece
+     * @param moved ture if the king had moved
+     */
     public King(boolean color, Square s, boolean moved) {
         super(color, 'K', s, 0);
         this.moved = moved;
@@ -35,7 +47,7 @@ public class King extends Piece implements Moved {
                 if (end != null && !end.equal(this.s)) {
                     capture = b.getPiece(end);
                     m = new Move(this.s, end, b, this.color);
-                    if ((capture == null || !this.sameColor(capture)) && (!checkForChecks || !m.isInCheck())) {
+                    if ((capture == null || !this.sameColor(capture)) && (!checkForChecks || !m.isInCheck(this.color))) {
                        // System.out.println("king move added: " + m);
                         moves.add(m);
                     }
@@ -43,13 +55,18 @@ public class King extends Piece implements Moved {
             }
         }
      //   System.out.println("finished regular king moves");
-
-        if (!this.moved && checkForChecks) {
-  //          System.out.println("kingside");
-            moves.add(this.castling(b, true));
-  //          System.out.println("queenside");
-            moves.add(this.castling(b, false));
- //           System.out.println("done");
+        if (checkForChecks) {
+            for (char c : b.getCastlingString().toCharArray()) {
+                if ((c == 'k' || c == 'K') && Character.isUpperCase(c) == this.color) {
+                   // System.out.println("king side");
+                    moves.add(this.castling(b, true));
+                }
+                if ((c == 'q' || c == 'Q') && Character.isUpperCase(c) == this.color) {
+                   // System.out.println("queen side");
+                    moves.add(this.castling(b, true));
+                }
+                //           System.out.println("done");
+            }
         }
   //      System.out.println("finished king moves");
         return moves;
@@ -61,16 +78,14 @@ public class King extends Piece implements Moved {
                 && this.s.equal(p.getSquare()));
     }
 
-    public boolean wasMoved() {
-        return this.moved;
-    }
-
     @Override
-    public void move(Square s) {
+    public int move(Square s) {
         this.s = s;
         this.moved = true;
+        return this.color ? 3 : -3;
     }
 
+    /*
     //add not while in check
     public Move castling(Board b, boolean kingSide) {
         Piece[][] a = b.getArray();
@@ -103,5 +118,41 @@ public class King extends Piece implements Moved {
         }
     //     System.out.println("rook on " + new Square(i, j) + " moved, or there are stuff in the way or just not");
         return null;
+    }
+    */
+    private Move castling(Board b, boolean kingSide) {
+        int[] files = b.getCastlingFiles();
+        Square current;
+        Piece temp;
+        int rank = this.s.getRank(), kingFinal = 7, file = this.s.getFile(), rookFinal = 5;
+        if (!kingSide) {
+            kingFinal = 2;
+            rookFinal = 3;
+        }
+        int direction = file < kingFinal ? 1 : -1;
+        if (!b.isEmpty(new Square(rank, rookFinal)) && !b.getPiece(new Square(rank, rookFinal)).equal(this)) {
+          //  System.out.println("rookFinal not empty" + rookFinal);
+            return null;
+        }
+        file += direction;
+        do {
+            current = Square.create(rank, file);
+            if (current == null) {
+               // System.out.println("no rook");
+                return null;
+            }
+            temp = b.getPiece(current);
+            if (temp instanceof Rook && temp.color == this.color && file == files[0] || file == files[1]) {
+                break;
+            } else if (temp != null || b.Controlled(current, !this.color, true) != 0) {
+              //  System.out.println("controlled or not empty");
+                return null;
+            }
+            file += direction;
+        } while (!(temp instanceof Rook) && !(file > 7 || file < 0));
+        if (temp instanceof Rook && temp.getColor() == this.color) {
+            return Move.createCastlingMove(kingSide, b, this.color, this.s, temp.getSquare());
+        }
+    return null;
     }
 }

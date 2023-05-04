@@ -2,10 +2,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * pawn class
+ */
 public class Pawn extends Piece {
 
     ///check for check!!!
 
+    /**
+     * creates a pawn piece
+     * @param color of the piece
+     * @param s the square of the piece
+     */
     public Pawn(boolean color, Square s) {
         super(color, 'P', s, 1);
     }
@@ -72,15 +80,32 @@ public class Pawn extends Piece {
         return moves;
     }
 
+    /**
+     *
+     * @return true if the pawn can double push
+     */
     private boolean canDouble() {
         int rank = this.getSquare().getRank();
         return this.color && rank == 1 || !this.color && rank == 6;
     }
 
+    /**
+     *
+     * @param end the promoting square
+     * @param b the board
+     * @return a list of possible moves
+     */
     private List<Move> promote(Square end, Board b) {
         return Move.createPromotionMove(this.s, end, b, this.color);
     }
 
+    /**
+     *
+     * @param b the board
+     * @param side
+     * @param direction
+     * @return
+     */
     private Move enPassant(Board b, int side, int direction) {
       //  System.out.println("done capture, starting en passant");
         int file = this.s.getFile() + side, rank = this.s.getRank();
@@ -93,6 +118,14 @@ public class Pawn extends Piece {
         return null;
     }
 
+    /**
+     *
+     * @param promote
+     * @param b
+     * @param side
+     * @param finalRank
+     * @return
+     */
     private List<Move> capture(boolean promote, Board b, int side, int finalRank) {
        // System.out.println("started capture moves");
         List<Move> moves = new ArrayList<>();

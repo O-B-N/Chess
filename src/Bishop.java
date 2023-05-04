@@ -1,7 +1,15 @@
 import java.util.List;
 
+/**
+ * bishop class
+ */
 public class Bishop extends Piece {
 
+    /**
+     * creates a queen piece
+     * @param color of the piece
+     * @param s the square of the piece
+     */
     public Bishop(boolean color, Square s) {
         super(color, 'B', s, 300);
     }
