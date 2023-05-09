@@ -83,6 +83,6 @@ public class Square {
     public String toString() {
         char a = 'a';
         a += this.file;
-        return new String(a + Integer.toString(this.rank + 1));
+        return a + Integer.toString(this.rank + 1);
     }
 }

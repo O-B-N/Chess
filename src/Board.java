@@ -8,70 +8,61 @@ public class Board {
     private Move lastMove = null;
     private boolean color = true;
     private int pey = 0;
+    private int fiftyMovesTrack = 0;
     private Square enPassant = null;
     private Map<String, Integer> history = new HashMap<>();
-    private int fiftyMovesTrack;
     private ArrayList<Move> movesHistory = new ArrayList<>();
-    boolean threeChecks = true;
+    private  String[] castleRights = {"","","",""};
     private int whiteChecks = 0;
     private int blackChecks = 0;
-    private Map<Integer, String> castleMap = new HashMap<>();
-    private int[] castlingFiles;
-    boolean bobbyChess = false;
+    private int[] rookFiles;
+    boolean threeChecks = false;
+    boolean duckChess = false;
+    boolean horde = false;
+
 
     /**
-     *
+     * creates a new board from a piece array and castling files and the castling right array
      * @param a the array of the pieces
-     * @param castlingFiles an int array of the castling files
+     * @param rookFiles an int array of the rook files
      */
-    public Board(Piece[][] a, int[] castlingFiles) {
+    public Board(Piece[][] a, int[] rookFiles) {
         this.a = a;
-        this.castlingFiles = castlingFiles;
-        this.castleMap.put(1, "K");
-        this.castleMap.put(2, "Q");
-        this.castleMap.put(3, "k");
-        this.castleMap.put(4, "q");
+        this.rookFiles = rookFiles;
+        this.castleRights[0] = "K";
+        this.castleRights[1] = "Q";
+        this.castleRights[2] = "k";
+        this.castleRights[3] = "q";
     }
 
     /**
-     *
+     * creates a board from a given fen
      * @param fen the fen of the board
      * @param lastMove last move played
-     * @param castlingFiles as an int array of the files
+     * @param rookFiles as an int array of the files
      */
-    public Board(String fen, Move lastMove, int[] castlingFiles) {
+    public Board(String fen, Move lastMove, int[] rookFiles, Map<String, Integer> history, ArrayList<Move> movesHistory) {
         this.lastMove = lastMove;
-        this.castlingFiles = castlingFiles;
+        this.rookFiles = rookFiles;
+        this.history = history;
+        this.movesHistory = movesHistory;
+
         this.a = new Piece[8][8];
         String[] parts = fen.split("\\s+");
         System.out.println(Arrays.toString(parts));
-        this.castleMap.put(1, "");
-        this.castleMap.put(2, "");
-        this.castleMap.put(3, "");
-        this.castleMap.put(4, "");
         for (char c : parts[2].toCharArray()) {
             switch (c) {
-                case 'K':
-                    this.castleMap.put(1, "K");
-                    break;
-                case 'Q':
-                    this.castleMap.put(2, "Q");
-                    break;
-
-                case 'k':
-                    this.castleMap.put(3, "k");
-                    break;
-
-                case 'q':
-                    this.castleMap.put(4, "q");
-                    break;
+                case 'K' -> this.castleRights[0] = "K";
+                case 'Q' -> this.castleRights[1] = "Q";
+                case 'k' -> this.castleRights[2] = "k";
+                case 'q' -> this.castleRights[3] = "q";
             }
         }
         String[] ranks = parts[0].split("/");
-        System.out.println(Arrays.toString(ranks));
+        int index;
         for (int rank = 0; rank < 8; rank++) {
             char[] row = ranks[rank].toCharArray();
-            int index = 0;
+             index = 0;
             for (int file = 0; file < 8; file++) {
                 char c = row[index];
                 boolean color = Character.isUpperCase(c);
@@ -85,30 +76,12 @@ public class Board {
                     }
                 } else {
                     switch (c) {
-                        case 'r':
-                        case 'R':
-                            this.a[7 - rank][file] = new Rook(color, square);
-                            break;
-                        case 'b':
-                        case 'B':
-                            this.a[7 - rank][file] = new Bishop(color, square);
-                            break;
-                        case 'n':
-                        case 'N':
-                            this.a[7 - rank][file] = new Knight(color, square);
-                            break;
-                        case 'k':
-                        case 'K':
-                            this.a[7 - rank][file] = new King(color, square);
-                            break;
-                        case 'q':
-                        case 'Q':
-                            this.a[7 - rank][file] = new Queen(color, square);
-                            break;
-                        case 'p':
-                        case 'P':
-                            this.a[7 - rank][file] = new Pawn(color, square);
-                            break;
+                        case 'r', 'R' -> this.a[7 - rank][file] = new Rook(color, square);
+                        case 'b', 'B' -> this.a[7 - rank][file] = new Bishop(color, square);
+                        case 'n', 'N' -> this.a[7 - rank][file] = new Knight(color, square);
+                        case 'k', 'K' -> this.a[7 - rank][file] = new King(color, square);
+                        case 'q', 'Q' -> this.a[7 - rank][file] = new Queen(color, square);
+                        case 'p', 'P' -> this.a[7 - rank][file] = new Pawn(color, square);
                     }
                     index++;
                 }
@@ -123,20 +96,20 @@ public class Board {
 
     /**
      *
-     * @param a
-     * @param lastMove
-     * @param color
-     * @param pey
+     * @param a pieces array
+     * @param lastMove the last move played
+     * @param color the color the is turn to play
+     * @param pey current pey
      */
     public Board(Piece[][] a, Move lastMove, boolean color, int pey) {
         this.a = a;
         this.lastMove = lastMove;
         this.color = color;
         this.pey = pey;
-        this.castleMap.put(1, "K");
-        this.castleMap.put(2, "Q");
-        this.castleMap.put(3, "k");
-        this.castleMap.put(4, "q");
+        this.castleRights[0] = "K";
+        this.castleRights[1] = "Q";
+        this.castleRights[2] = "k";
+        this.castleRights[3] = "q";
     }
 
     /**
@@ -152,8 +125,8 @@ public class Board {
      * @return the castling files as a string
      */
     public String getCastlingString() {
-        Map<Integer, String> m = this.castleMap;
-        return m.get(1) + "" + m.get(2) + "" + m.get(3) + "" + m.get(4);
+        String[] c = this.castleRights;
+        return c[0] + "" + c[1] + "" + c[2] + "" + c[3];
     }
 
     /**
@@ -188,8 +161,8 @@ public class Board {
      *
      * @param s a square on the board
      * @param color true for white, false for black
-     * @param castle
-     * @return
+     * @param castle is it for castling check
+     * @return number of times the square is controlled by the color
      */
     public int Controlled(Square s, boolean color, boolean castle) {
         boolean check = !castle;
@@ -263,7 +236,7 @@ public class Board {
 
     /**
      *
-     * @return the position in fen
+     * @return the position in fen without the moves
      */
     public String positionToFen() {
         int space = 0;
@@ -288,25 +261,23 @@ public class Board {
                 fen.append('/');
             }
         }
-        String color = " b ";
-        if (this.color) {
-            color = " w ";
-        }
-        fen.append(color);
-        Map m = this.castleMap;
-        String castling = m.get(1) + "" + m.get(2) + "" + m.get(3) + "" + m.get(4);
+        fen.append(this.color ? " w " : " b ");
+        String[] c = this.castleRights;
+        String castling = c[0] + "" + c[1] + "" + c[2] + "" + c[3];
         if (castling.equals("")) {
-            castling = "-";
+            castling = "- ";
         }
         fen.append(castling);
-
-        // for now for every double push
-        fen.append(" " + (this.enPassant == null ? "-" : this.enPassant.toString()));
-
-        fen.append(" " + this.fiftyMovesTrack);
-
-        fen.append(" " + (int) (this.pey / 2));
+        fen.append(this.enPassant == null ? "-" : this.enPassant.toString());
         return fen.toString();
+    }
+
+    /**
+     *
+     * @return the position in fen with the move numbers
+     */
+    public String positionToFenWithMoves() {
+        return positionToFen() + " " + " " + this.fiftyMovesTrack + this.pey / 2;
     }
 
     /**
@@ -323,7 +294,6 @@ public class Board {
         return this.history.get(currentFen) == 3;
     }
 
-
     /**
      *
      * @return the result of function noMoves - true if there are no legal moves
@@ -334,8 +304,8 @@ public class Board {
 
     /**
      *
-     * @param color
-     * @return
+     * @param color the color to check
+     * @return true if the king of that color is in check
      */
     public boolean inCheck(boolean color) {
         for (Move m : this.allMoves(!color, false)) {
@@ -422,8 +392,9 @@ public class Board {
         return newGame(king, rook1, rook2, bishop1, bishop2, knight1, knight2);
     }
 
+    //change to array or some
     /**
-     * creats a new game with files for each piece
+     * creates a new game with files for each piece
      * @param king 's file
      * @param rook1 's file
      * @param rook2 's file
@@ -449,7 +420,7 @@ public class Board {
                     a[rank][file] = new Pawn(color, new Square(rank, file));
                 } else if (rank == 7 || rank == 0) {
                     if (file == rook1 || file == rook2) {
-                        a[rank][file] = new Rook(color, new Square(rank, file), false, file == rook2);
+                        a[rank][file] = new Rook(color, new Square(rank, file));
                     } else if (file == knight1 || file == knight2) {
                         a[rank][file] = new Knight(color, new Square(rank, file));
                     } else if (file == bishop1 || file == bishop2) {
@@ -468,53 +439,78 @@ public class Board {
     /**
      *
      * @param m a move to be played on the board and update stats
+     *
      */
     public void makeMove(Move m) {
-     //  System.out.println("making move: " + m);
-        if (m.isDoublePawnPush()) {
-            this.enPassant = new Square(m.getEnd().getRank() + (this.color ? -1 : 1), m.getEnd().getFile());
-        }
-        else {
-            this.enPassant = null;
-        }
         if (m.isCastling()) {
             this.castle(m);
-        } else {
-            Square start = m.getStart();
-            Square end = m.getEnd();
-       //     System.out.println(start + " " + end);
-            Piece p = this.a[start.getRank()][start.getFile()];
-            if (p == null) {
-                System.out.println("no piece " + m);
-                return;
-            }
-            this.a[end.getRank()][end.getFile()] = p;
-            if (m.isPromotion()) {
-                this.a[end.getRank()][end.getFile()] = m.getPromoted();
-            }
-            this.a[start.getRank()][start.getFile()] = null;
-            if (m.isEnPassant()) {
-                //System.out.println("En croissant!!");
-                this.a[end.getRank() + (p.getColor() ? -1 : 1)][end.getFile()] = null;
-            }
-            int temp = this.color ? 1 : -1 * p.move(end);
-            switch (temp) {
-                case 3:
-                    this.castleMap.put(1, "");
-                    this.castleMap.put(2, "");
-                    break;
-                case -3:
-                    this.castleMap.put(3, "");
-                    this.castleMap.put(4, "");
-                    break;
-                default:
-                    this.castleMap.put(temp, "");
-            }
-            this.pey += 1;
-            this.color = !this.color;
-            this.movesHistory.add(m);
-            this.lastMove = m;
+            return;
         }
+        Piece p = this.a[m.getStart().getRank()][m.getStart().getFile()];
+        Square end = m.getEnd();
+        if(!makeHalfMove(m)) {
+            return;
+        }
+        if (p instanceof Rook) {
+            if (rookFiles[0] == p.getSquare().getFile()) {
+                if (this.color) {
+                    this.castleRights[1] = "";
+                } else {
+                    this.castleRights[3] = "";
+                }
+            } else if (rookFiles[1] == p.getSquare().getFile()) {
+                if (this.color) {
+                    this.castleRights[0] = "";
+                } else {
+                    this.castleRights[2] = "";
+                }
+            }
+        } else if (p instanceof King) {
+            if (this.color) {
+                this.castleRights[0] = "";
+                this.castleRights[1] = "";
+            } else {
+                this.castleRights[2] = "";
+                this.castleRights[3] = "";
+            }
+        } else if (p instanceof Pawn || m.isCapture() || m.isPromotion()) {
+            this.fiftyMovesTrack = 0;
+        }
+        if (m.isPromotion()) {
+            this.a[end.getRank()][end.getFile()] = m.getPromoted();
+        }
+        if (m.isEnPassant()) {
+            //System.out.println("En croissant!!");
+            this.a[end.getRank() + (p.getColor() ? -1 : 1)][end.getFile()] = null;
+        }
+        if (m.isDoublePawnPush()) {
+            this.enPassant = new Square(m.getEnd().getRank() + (this.color ? -1 : 1), m.getEnd().getFile());
+        } else {
+            this.enPassant = null;
+        }
+        this.pey += 1;
+        this.color = !this.color;
+        this.movesHistory.add(m);
+        this.lastMove = m;
+        return;
+    }
+
+    /**
+     *
+     * @param m the move to play
+     */
+    public boolean makeHalfMove(Move m) {
+        Square start = m.getStart();
+        Square end = m.getEnd();
+        Piece p = this.a[start.getRank()][start.getFile()];
+        this.a[end.getRank()][end.getFile()] = p;
+        this.a[start.getRank()][start.getFile()] = null;
+        if (p == null) {
+            System.out.println("no piece");
+            return false;
+        }
+        p.updateSquare(end);
+        return true;
     }
 
     /**
@@ -522,36 +518,36 @@ public class Board {
      * @param m the castling move
      */
     public void castle(Move m) {
-        this.makeMove(m.getCastleKing());
-        this.makeMove(m.getCastleRook());
-        this.pey -= 1;
+        this.makeHalfMove(m.getCastleKing());
+        this.makeHalfMove(m.getCastleRook());
+        if(this.color) {
+            this.castleRights[0] = "";
+            this.castleRights[1] = "";
+        } else {
+            this.castleRights[2] = "";
+            this.castleRights[3] = "";
+        }
+        this.pey += 1;
         this.color = !this.color;
+        this.movesHistory.add(m);
         this.lastMove = m;
+        this.enPassant = null;
     }
 
     /**
      *
-     * @param c
-     * @param checkForChecks
-     * @return
+     * @param color true for white false for black
+     * @param checkForChecks false to include illegal moves that leave the king in check
+     * @return a list of all possible moves for that color
      */
-    public List<Move> allMoves(boolean c, boolean checkForChecks) {
-        System.out.println("all moves");
-        System.out.println(c + " " + checkForChecks);
+    public List<Move> allMoves(boolean color, boolean checkForChecks) {
         this.printBoard();
-   //     System.out.println("all moves, checking for checks: " + checkForChecks);
-        if (this.lastMove != null) {
-            System.out.println("last move: " + this.lastMove);
-        }
         List<Move> moves = new ArrayList<>();
         for (int rank = 0; rank < 8; rank++) {
             for (int file = 0; file < 8; file++) {
-                if (this.a[rank][file] != null && this.a[rank][file].getColor() == c) {
-                    System.out.println("piece in " + new Square(rank, file) + " is a " + this.a[rank][file]);
+                if (this.a[rank][file] != null && this.a[rank][file].getColor() == color) {
                     List<Move> temp = this.a[rank][file].allLegalMoves(this, checkForChecks);
-         //           System.out.println("added: " + temp);
                     moves.addAll(temp);
-    //                System.out.println("finished with " + new Square(rank, file) + " is a " + this.a[rank][file]);
                 }
             }
         }
@@ -559,11 +555,9 @@ public class Board {
        List<Move> l = new ArrayList<>(moves);
        for (int i = l.size() - 1; i >= 0; i--) {
            if (l.get(i) == null || (checkForChecks && l.get(i).isInCheck(this.getColor()))) {
-               System.out.println("removing " + l.get(i));
                moves.remove(i);
            }
        }
-    //    System.out.println("all moves: " + moves);
         return moves;
     }
 
@@ -574,7 +568,6 @@ public class Board {
     public Move getLastMove() {
         return this.lastMove;
     }
-                //int x = (this.color ? 0 : 1) * 7;
 
     /**
      * a test function
@@ -583,7 +576,7 @@ public class Board {
         boolean pvAi = false;
         Random r = new Random();
         System.out.println("test started");
-        if (false) {
+        if (pvAi) {
             for (int i = 0; i < 8; i++) {
                 Piece p = this.getPiece(0, i);
                 if (!(p instanceof Rook || p instanceof King)) {
@@ -610,11 +603,6 @@ public class Board {
         int index;
         while (!this.isGameOver()) {
             moves = this.allMoves(this.getColor(), true);
-            for (Move move : moves) {
-                if (move != null) {
-                    System.out.println("move " + (moves.indexOf(move) + 1) + ": " + move);
-                }
-            }
          //   if (this.color && (pvAi || (int)(pey) % 10 == 0)) {
             if (this.color) {
                 index = 0;
@@ -666,7 +654,7 @@ public class Board {
         for (int rank = 7; rank >= 0; rank--) {
               for (int file = 0; file < 8; file++) {
                   if (a[rank][file] == null) {
-                      System.out.printf("0 ");
+                      System.out.print("0 ");
                   } else {
                       System.out.printf(a[rank][file] + " ");
                   }
@@ -752,7 +740,15 @@ public class Board {
      *
      * @return the castling files array
      */
-    public int[] getCastlingFiles() {
-            return this.castlingFiles;
+    public int[] getRookFiles() {
+            return this.rookFiles;
+    }
+
+    /**
+     *
+     * @return the en passant square if there is one (could be null)
+     */
+    public Square getEnPassant() {
+        return enPassant;
     }
 }

@@ -19,8 +19,6 @@ public class Queen extends Piece {
         return new Queen(this.getColor(), this.s);
     }
 
-
-    //rook + bishop
     @Override
     public List<Move> allLegalMoves(Board b, boolean checkForChecks) {
         List<Move> moves = this.allStraightMoves(b, checkForChecks);

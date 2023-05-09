@@ -10,7 +10,7 @@ public class Duck extends Piece {
      * creates a new duck
      */
     public Duck() {
-        super(true, 'P', null, 1);
+        super(true, 'D', null, 0);
     }
 
     /**
@@ -18,7 +18,7 @@ public class Duck extends Piece {
      * @param s the square
      */
     public Duck(Square s) {
-        super(true, 'P', s, 1);
+        super(true, 'D', s, 0);
     }
 
     @Override
@@ -29,7 +29,7 @@ public class Duck extends Piece {
             for (int j = 0; j < 8; j++) {
                 end = new Square(i, j);
                 if (b.isEmpty(s)) {
-                    l.add(new Move(this.s, end, b, b.getColor()));
+                    l.add(new Move(this.s, end, b));
                 }
             }
         }

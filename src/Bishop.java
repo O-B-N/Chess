@@ -6,7 +6,7 @@ import java.util.List;
 public class Bishop extends Piece {
 
     /**
-     * creates a queen piece
+     * creates a bishop piece
      * @param color of the piece
      * @param s the square of the piece
      */
