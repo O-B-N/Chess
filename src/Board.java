@@ -111,15 +111,6 @@ public class Board {
     }
 
     /**
-     * @param rank get the rank of a square
-     * @param file get the file of a square
-     * @return a piece on the board (could be null?)
-     */
-    public Piece getPiece(int rank, int file) {
-        return this.a[rank][file];
-    }
-
-    /**
      * @param s get the s of a square
      * @return a piece in that square (could be null?)
      */
@@ -524,7 +515,7 @@ public class Board {
         //if move result in self check remove it
         List<Move> l = new ArrayList<>(moves);
         for (int i = l.size() - 1; i >= 0; i--) {
-            if (l.get(i) == null || (checkForChecks && l.get(i).isInCheck(this.getColor()))) {
+            if (l.get(i) == null || (l.get(i).getEnd() != null && this.getPiece(l.get(i).getEnd()) != null && this.getPiece(l.get(i).getEnd()).getColor() == this.color) || (checkForChecks && l.get(i).isInCheck(this.getColor()))) {
                 moves.remove(i);
             }
         }

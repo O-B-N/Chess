@@ -23,7 +23,6 @@ public class King extends Piece {
     @Override
     public List<Move> allLegalMoves(Board b, Square s, boolean checkForChecks) {
         List<Move> moves = new ArrayList<>();
-        Piece capture;
         Move m;
         Square end;
         int newRow, newColumn;
@@ -33,11 +32,8 @@ public class King extends Piece {
                 newColumn = s.getFile() + j;
                 end = Square.create(newRow, newColumn);
                 if (end != null && !end.equals(s)) {
-                    capture = b.getPiece(end);
                     m = new Move(s, end, b);
-                    if (capture == null || this.differentColor(capture)) {
                         moves.add(m);
-                    }
                 }
             }
         }
