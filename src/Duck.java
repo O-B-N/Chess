@@ -2,7 +2,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * duck class
+ * a duck class
  */
 public class Duck extends Piece {
 
@@ -10,26 +10,18 @@ public class Duck extends Piece {
      * creates a new duck
      */
     public Duck() {
-        super(true, 'D', null, 0);
-    }
-
-    /**
-     * creates a new duck on a square
-     * @param s the square
-     */
-    public Duck(Square s) {
-        super(true, 'D', s, 0);
+        super(true, 'D', 0);
     }
 
     @Override
-    public List<Move> allLegalMoves(Board b, boolean checkForChecks) {
+    public List<Move> allLegalMoves(Board b, Square s, boolean checkForChecks) {
         Square end;
         List<Move> l = new ArrayList<>();
         for (int i = 0; i < 8; i++) {
             for (int j = 0; j < 8; j++) {
                 end = new Square(i, j);
                 if (b.isEmpty(s)) {
-                    l.add(new Move(this.s, end, b));
+                    l.add(new Move(s, end, b));
                 }
             }
         }
@@ -38,6 +30,6 @@ public class Duck extends Piece {
 
     @Override
     public Piece copy() {
-        return new Duck(this.s);
+        return new Duck();
     }
 }

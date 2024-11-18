@@ -3,12 +3,11 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * an abstract class for all the pieces played on the board
+ * an abstract class to create all the pieces on the chessboard
  */
 abstract class Piece {
     protected boolean color;
     protected char type;
-    protected Square s;
     protected int value;
 
 
@@ -16,35 +15,16 @@ abstract class Piece {
      *  creates a piece
      * @param color the color of the piece
      * @param type the type of the piece
-     * @param s the square of the piece
      * @param value piece value
      */
-    public Piece(boolean color, char type, Square s, int value) {
+    public Piece(boolean color, char type, int value) {
         this.color = color;
         if (!color) {
             String r = (type + "").toLowerCase(Locale.ROOT);
             type = r.toCharArray()[0];
         }
         this.type = type;
-        this.s = s;
         this.value = value;
-    }
-
-    /**
-     * check if two pieces are equal
-     * @param p piece to compare
-     * @return true if pieces are the save type and same color and square?
-     */
-    public boolean equal(Piece p) {
-        return (this.color == p.getColor() && this.type == p.getType() && this.s.equal(p.getSquare()));
-    }
-
-    /**
-     *
-     * @return a square that the piece is on
-     */
-    public Square getSquare() {
-        return this.s;
     }
 
     /**
@@ -53,7 +33,7 @@ abstract class Piece {
      * @param checkForChecks false to include illegal moves that leave the king in check
      * @return a list of all legal moves
      */
-    public abstract List<Move> allLegalMoves(Board b, boolean checkForChecks);
+    public abstract List<Move> allLegalMoves(Board b, Square s, boolean checkForChecks);
 
     /**
      *
@@ -61,14 +41,6 @@ abstract class Piece {
      * maybe can be shared q b n?
      */
     public abstract Piece copy();
-
-    /**
-     *
-     * @return the type of the piece
-     */
-    public char getType() {
-        return type;
-    }
 
     /**
      *
@@ -83,43 +55,34 @@ abstract class Piece {
      * @param p a piece to compare
      * @return true if the pieces are the same color
      */
-    public boolean sameColor(Piece p) {
-        return p.getColor() == this.color;
+    public boolean differentColor(Piece p) {
+        return p.getColor() != this.color;
     }
 
     /**
      *
-     * @param s the square to move to
-     */
-    public void updateSquare(Square s) {
-        this.s = s;
-    }
-
-    /**
-     *
-     * @param b on the board bv
-     * @param checkForChecks false to include illegal moves that leave the king in check
+     * @param b on the board b
+     * @param s the start square
      * @return a list of all the legal straight moves
      */
-    public List<Move> allStraightMoves(Board b, boolean checkForChecks) {
-        List<Move> moves = this.straightMoves(b, true, true, checkForChecks);
-        moves.addAll(this.straightMoves(b, true, false, checkForChecks));
-        moves.addAll(this.straightMoves(b, false, true, checkForChecks));
-        moves.addAll(this.straightMoves(b, false, false, checkForChecks));
+    public List<Move> allStraightMoves(Board b, Square s) {
+        List<Move> moves = this.straightMoves(b, s, true, true);
+        moves.addAll(this.straightMoves(b, s, true, false));
+        moves.addAll(this.straightMoves(b, s, false, true));
+        moves.addAll(this.straightMoves(b, s, false, false));
         return moves;
     }
 
     /**
      *
      * @param b on the board b
+     * @param s the start square
      * @param isRank if the axis is y
      * @param increase if going up the axis
-     * @param checkForChecks false to include illegal moves that leave the king in check
      * @return a list of moves in the specified direction
      */
-    public List<Move> straightMoves(Board b, boolean isRank, boolean increase, boolean checkForChecks) {
+    public List<Move> straightMoves(Board b,Square s, boolean isRank, boolean increase) {
         Piece[][] a = b.getArray();
-        Square s = this.getSquare();
         Move m;
         List<Move> moves = new ArrayList<>();
         int i = s.getRank();
@@ -143,8 +106,8 @@ abstract class Piece {
         }
         while (x >= 0 && x < 8 && pTemp == null) {
             pTemp = a[i][j];
-            m = new Move(this.s, new Square(i, j), b);
-            if ((pTemp == null || !this.sameColor(pTemp)) && (!checkForChecks || !m.isInCheck(this.color))) {
+            m = new Move(s, new Square(i, j), b);
+            if (pTemp == null || this.differentColor(pTemp)) {
                 moves.add(m);
             }
             if (isRank) {
@@ -169,26 +132,25 @@ abstract class Piece {
     /**
      *
      * @param b board to check moves on
-     * @param checkForChecks false to include illegal moves that leave the king in check
+     * @param s the start square
      * @return a list of all diagonal moves
      */
-    public List<Move> allDiagonalMoves(Board b, boolean checkForChecks) {
-        List<Move> moves = this.diagonalMoves(b, true, true, checkForChecks);
-        moves.addAll(this.diagonalMoves(b, true, false, checkForChecks));
-        moves.addAll(this.diagonalMoves(b, false, true, checkForChecks));
-        moves.addAll(this.diagonalMoves(b, false, false, checkForChecks));
+    public List<Move> allDiagonalMoves(Board b, Square s) {
+        List<Move> moves = this.diagonalMoves(b, s, true, true);
+        moves.addAll(this.diagonalMoves(b, s, true, false));
+        moves.addAll(this.diagonalMoves(b, s, false, true));
+        moves.addAll(this.diagonalMoves(b, s, false, false));
         return moves;
     }
 
     /**
      *
      * @param b board to check moves on
-     * @param checkForChecks false to include illegal moves that leave the king in check
+     * @param s the start square
      * @return a list of all diagonal move in the specified direction
      */
-    public List<Move> diagonalMoves(Board b, boolean up, boolean right, boolean checkForChecks) {
+    public List<Move> diagonalMoves(Board b, Square s, boolean up, boolean right) {
         Piece[][] a = b.getArray();
-        Square s = this.getSquare();
         List<Move> moves = new ArrayList<>();
         Move m;
         int i = s.getRank();
@@ -207,8 +169,8 @@ abstract class Piece {
         Piece pTemp = null;
         while (i >= 0 && i < 8 && j >= 0 && j < 8 && pTemp == null) {
             pTemp = a[i][j];
-            m = new Move(this.s, new Square(i, j), b);
-            if ((pTemp == null || !this.sameColor(pTemp)) && (!checkForChecks || !m.isInCheck(this.color))) {
+            m = new Move(s, new Square(i, j), b);
+            if (pTemp == null || this.differentColor(pTemp)) {
                 moves.add(m);
             }
                 if (up) {
@@ -236,12 +198,11 @@ abstract class Piece {
     /**
      *
      * @param b the board
-     * @param checkForChecks false to include illegal moves that leave the king in check
+     * @param s the start square
      * @return a list of knight moves from where the piece is
      */
-    protected List<Move> knightMoves(Board b, boolean checkForChecks) {
+    protected List<Move> knightMoves(Board b, Square s) {
         List<Move> moves = new ArrayList<>();
-        Square s = this.s;
         Square end;
         Piece capture;
         Move m;
@@ -251,8 +212,8 @@ abstract class Piece {
                     end = Square.create(s.getRank() + rank, s.getFile() + file);
                     if (end != null) {
                         capture = b.getPiece(end);
-                        m = new Move(this.s, new Square(rank, file), b);
-                        if ((capture == null || !this.sameColor(capture)) && (!checkForChecks || !m.isInCheck(this.color))) {
+                        m = new Move(s, end, b);
+                        if (capture == null || this.differentColor(capture)) {
                             moves.add(m);
                         }
                     }

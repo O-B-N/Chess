@@ -8,16 +8,15 @@ public class Knook extends Piece {
     /**
      * creates a knook piece
      * @param color of the piece
-     * @param s the square of the piece
      */
-    public Knook(boolean color,  Square s) {
-        super(color, 'N', s, 3);
+    public Knook(boolean color) {
+        super(color, 'N', 3);
     }
 
     @Override
-    public List<Move> allLegalMoves(Board b, boolean checkForChecks) {
-        List<Move> l = this.allStraightMoves(b, checkForChecks);
-        l.addAll(this.knightMoves(b, checkForChecks));
+    public List<Move> allLegalMoves(Board b, Square s, boolean checkForChecks) {
+        List<Move> l = this.allStraightMoves(b, s);
+        l.addAll(this.knightMoves(b, s));
         return l;
     }
 
