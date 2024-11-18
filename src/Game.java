@@ -9,8 +9,7 @@ public class Game {
      */
     public static void main(String[] args) {
        Board b = Board.newGame();
-       System.out.println(b.positionToFen());
-       b.runTest();
-        //Board.simpleTest();
+       GameFlow.runTest(b);
+       //GameFlow.simpleTest();
     }
 }

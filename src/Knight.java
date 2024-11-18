@@ -1,26 +1,25 @@
 import java.util.List;
 
 /**
- * knight class
+ * a knight class
  */
 public class Knight extends Piece {
 
     /**
      * creates a knight piece
      * @param color of the piece
-     * @param s the square of the piece
      */
-    public Knight(boolean color,  Square s) {
-        super(color, 'N', s, 3);
+    public Knight(boolean color) {
+        super(color, 'N', 3);
     }
 
     @Override
     public Piece copy() {
-        return new Knight(this.color, this.s);
+        return new Knight(this.color);
     }
 
     @Override
-    public List<Move> allLegalMoves(Board b, boolean checkForChecks) {
-        return this.knightMoves(b, checkForChecks);
+    public List<Move> allLegalMoves(Board b, Square s, boolean checkForChecks) {
+        return this.knightMoves(b, s);
     }
 }

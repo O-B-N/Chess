@@ -39,10 +39,10 @@ public class Square {
         }
 
         char[] a = str.toCharArray();
-        int rank = a[0];
-        int file = a[1];
+        char rank = a[0];
+        char file = a[1];
 
-        if (rank > '0' && rank < '9' && file > '`' && file < 'i') {
+        if (rank < '0' || rank > '9' || file < '`' || file > 'i') {
             return null;
         }
         return new Square(rank - (int)'0', file - (int)'`');
@@ -53,11 +53,11 @@ public class Square {
      * @param s the square to compare to
      * @return true if they're the same
      */
-    public boolean equal(Square s) {
+    public boolean equals(Square s) {
         if (s == null) {
-            return true;
+            return false;
         }
-        return this.toString().equals(s.toString());
+        return this.getFile() == s.getFile() && this.getRank() == s.getRank();
     }
 
     /**

@@ -2,7 +2,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * a class to represent playable moves on the chessboard
+ * a class to create playable moves on the chessboard
  */
 public class Move {
     private Board boardCopy;
@@ -27,21 +27,18 @@ public class Move {
      */
     public Move(Square start, Square end, Board b) {
         this.boardCopy = b.copy();
+        if (end == null || start == null) {
+            System.exit(3);
+        }
         this.piece = b.getPiece(start);
-        this.capture = boardCopy.getPiece(this.end);
+        //System.out.println(start + end.toString() + this.piece);
+        this.capture = boardCopy.getPiece(end);
         if (this.piece == null) {
-            this.boardCopy.printBoard();
-            System.out.println("no piece in move creation");
-            System.out.println(start + " " + end);
-            System.exit(1);
+         //   this.boardCopy.printBoard();
+          //  System.out.println("no piece in move creation");
         }
         this.start = start;
         this.end = end;
-        if (end == null) {
-            System.out.println("null end move");
-            System.out.println(start);
-            System.exit(2);
-        }
         this.doublePawnPush = this.piece instanceof Pawn && Math.abs(start.getRank() - end.getRank()) == 2;
     }
 
@@ -83,19 +80,19 @@ public class Move {
         List<Move> moves = new ArrayList<>();
         Move m = new Move(start, end, b);
         m.promotion = true;
-        m.promoted = new Knight(color, end);
+        m.promoted = new Knight(color);
         moves.add(m);
         m = new Move(start, end, b);
         m.promotion = true;
-        m.promoted = new Queen(color, end);
+        m.promoted = new Queen(color);
         moves.add(m);
         m = new Move(start, end, b);
         m.promotion = true;
-        m.promoted = new Bishop(color, end);
+        m.promoted = new Bishop(color);
         moves.add(m);
         m = new Move(start, end, b);
         m.promotion = true;
-        m.promoted = new Rook(color, end);
+        m.promoted = new Rook(color);
         moves.add(m);
         return moves;
     }
@@ -128,7 +125,7 @@ public class Move {
      */
     public boolean isLegalMove() {
         boolean isAMove = false;
-        List<Move> moves = this.piece.allLegalMoves(boardCopy.copy(), true);
+        List<Move> moves = this.piece.allLegalMoves(boardCopy.copy(), this.start, true);
         for (Move m : moves) {
             if (this.equal(m)) {
                 isAMove = true;
@@ -229,14 +226,14 @@ public class Move {
      * @return true if the moves are equal
      */
     public boolean equal(Move m) {
-        return boardCopy.equal(m.getBoard()) && this.start.equal(m.getStart()) && this.end.equal(m.getEnd());
+        return boardCopy.equal(m.getBoard()) && this.start.equals(m.getStart()) && this.end.equals(m.getEnd());
     }
 
     /**
-     *
+     * @param l list of all the legal moves
      * @return the move as a string
      */
-    public String toString() {
+    public String toString(List<Move> l) {
         Piece piece = this.piece;
         String check = "";
         if (this.isInCheck(!piece.getColor())) {
@@ -245,6 +242,8 @@ public class Move {
             copy.makeMove(this);
             if (copy.isCheckmate()) {
                 check = "#";
+            } else if (copy.isStalemate()) {
+                check = "$";
             }
         }
         String end = check;
@@ -257,33 +256,106 @@ public class Move {
         if (this.promotion) {
             end = "=" + this.promoted + check;
         }
-        List<Move> doubles = new ArrayList<>();
-        for(Move m : this.boardCopy.allMoves(boardCopy.getColor(), true)) {
-            if (m.getEnd().equal(this.end) && m.getPiece().getClass().equals( this.piece.getClass())) {
-                doubles.add(m);
+        String pieceString = piece.toString();
+        boolean sameRank = false, sameFile = false, ambiguous = false;
+        //determine if the move is ambiguous
+        for (Move m : l) {
+            if (m.getEnd().equals(this.end) && m.getPiece().getClass() == this.piece.getClass() && !m.getStart().equals(this.getStart())) {
+                ambiguous = true;
+                if (m.getStart().getFile() == this.start.getFile()) {
+                    sameFile = true;
+                }
+                if (m.getStart().getRank() == this.start.getRank()) {
+                    sameRank = true;
+                }
             }
         }
-        int size = doubles.size();
-        String pieceString = piece.toString();
-        if (size != 0) {
-            if (size == 1) {
-                Move m = doubles.get(0);
-                if (m.getStart().getFile() == this.start.getFile()) {
-                    pieceString = pieceString + this.start.toString().charAt(1);
-                } else {
-                    pieceString = pieceString + this.start.toString().charAt(0);
-                }
+        if (ambiguous) {
+            System.out.println("a");
+            if (!sameFile) {
+                System.out.println("b");
+                pieceString = pieceString + this.start.toString().charAt(0);
+            } else if (!sameRank) {
+                System.out.println("c");
+                pieceString = pieceString + this.start.toString().charAt(1);
+                System.out.println(pieceString);
             } else {
+                System.out.println("d");
                 pieceString = pieceString + this.start.toString();
             }
         }
         if (this.isCapture()) {
-            String pawn = piece.getSquare().toString().toCharArray()[0] + "";
+            String pawn = this.start.toString().toCharArray()[0] + "";
             return ((piece instanceof Pawn ? pawn : pieceString) + "x" + this.end.toString() + end);
         } else if (piece instanceof Pawn) {
             return (this.end.toString() + end);
         }
-        return (this.piece.toString() + "" + this.end.toString() + end);
+        return (pieceString + "" + this.end.toString() + end);
+    }
+
+    /**
+     *
+     * @return the move as a string
+     */
+    @Override
+    public String toString() {
+        Piece piece = this.piece;
+        String check = "";
+        if (this.isInCheck(!piece.getColor())) {
+            check = "+";
+            Board copy = this.boardCopy.copy();
+            copy.makeMove(this);
+            if (copy.isCheckmate()) {
+                check = "#";
+            } else if (copy.isStalemate()) {
+                check = "$";
+            }
+        }
+        String end = check;
+        if (this.isCastling()) {
+            if (isKingSide) {
+                return "O-O" + check;
+            }
+            return "O-O-O" + check;
+        }
+        if (this.promotion) {
+            end = "=" + this.promoted + check;
+        }
+        String pieceString = piece.toString();
+        boolean sameRank = false, sameFile = false, ambiguous = false;
+        //determine if the move is ambiguous
+        for (Move m : this.boardCopy.allMoves(boardCopy.getColor(), true)) {
+            if (m.getEnd().equals(this.end) && m.getPiece().getClass() == this.piece.getClass() && !m.getStart().equals(this.getStart())) {
+                ambiguous = true;
+                if (m.getStart().getFile() == this.start.getFile()) {
+                    sameFile = true;
+                }
+                if (m.getStart().getRank() == this.start.getRank()) {
+                    sameRank = true;
+                }
+            }
+        }
+        if (ambiguous) {
+            System.out.println("a");
+            if (!sameFile) {
+                System.out.println("b");
+                pieceString = pieceString + this.start.toString().charAt(0);
+            } else if (!sameRank) {
+                System.out.println("c");
+                pieceString = pieceString + this.start.toString().charAt(1);
+                System.out.println(pieceString);
+            } else {
+                System.out.println("d");
+                pieceString = pieceString + this.start.toString();
+            }
+        }
+        if (this.isCapture()) {
+            String pawn = this.start.toString().toCharArray()[0] + "";
+            return ((piece instanceof Pawn ? pawn : pieceString) + "x" + this.end.toString() + end);
+        } else if (piece instanceof Pawn) {
+            return (this.end.toString() + end);
+        }
+        return (pieceString + "" + this.end.toString() + end);
     }
 
     /**
